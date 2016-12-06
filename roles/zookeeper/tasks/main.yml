@@ -1,0 +1,42 @@
+- include_vars: vars.yml
+- include: roles/zookeeper/templates/facts.yml
+- name: Install required items
+  yum: name={{ item }} state=present
+  with_items:
+    - libselinux-python
+    - java-1.8.0-openjdk-headless
+    - nc
+- name: Create ZK User
+  user: name=zookeeper shell=/bin/bash
+- name: Extract zookeeper
+  unarchive:
+    src: http://apache.claz.org/zookeeper/zookeeper-3.4.9/zookeeper-3.4.9.tar.gz
+    remote_src: yes
+    dest: /usr/local
+    owner: zookeeper
+    creates: /usr/local/zookeeper-3.4.9
+  environment:
+            http_proxy: http://172.21.100.144:3128
+            https_proxy: http://172.21.100.144:3128
+- name: Create myid file
+  template: src=myid dest=/home/zookeeper/myid
+- name: Create zoo.cfg from template
+  template: src=zoo.cfg dest=/usr/local/zookeeper-3.4.9/conf/zoo.cfg
+- name: Check if zookeeper is running
+  command: sh -c "ps aux|grep [z]ookeeper"
+  ignore_errors: yes
+  changed_when: false
+  register: service_zookeeper
+- name: Start Zookeeper
+  command: /usr/local/zookeeper-3.4.9/bin/zkServer.sh start
+  when: service_zookeeper | failed
+#- debug:
+#     var: service_zookeeper
+- name: Wait for ZK to start
+  wait_for: host=127.0.0.1 port=2181 delay=5 state=present
+- name: Check that zk started correctly
+  shell: echo ruok | nc 127.0.0.1 2181
+  register: zk_ruok
+- assert:
+    that:
+      - "'imok' in zk_ruok.stdout"

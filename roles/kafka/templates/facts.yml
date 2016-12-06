@@ -1,0 +1,4 @@
+
+---
+- set_fact:
+    broker_id: "{{ kafHosts.index(inventory_hostname)|int }}"

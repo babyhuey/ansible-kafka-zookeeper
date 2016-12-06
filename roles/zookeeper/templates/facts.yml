@@ -1,0 +1,4 @@
+
+---
+- set_fact:
+    myid: "{{ zkHosts.index(inventory_hostname)|int + 1 }}"
