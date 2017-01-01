@@ -9,7 +9,11 @@
 #   - A hostname/ip can be a member of multiple groups
 
 [zkHosts]
-zoo-01.example.com
+zoo-01.stage.segmint.net
+zoo-02.stage.segmint.net
+zoo-03.stage.segmint.net
 
 [kafHosts]
-kaf-01.example.com
+kaf-01.stage.segmint.net
+kaf-02.stage.segmint.net
+kaf-03.stage.segmint.net

@@ -1,0 +1,8 @@
+- name: Copy datadog configs to server
+  copy:
+    src: files/kafka.yaml
+    dest: /etc/dd-agent/conf.d/kafka.yaml
+    force: no
+  notify: restart datadog
+  tags:
+    - datadog

@@ -1,0 +1,5 @@
+- hosts: kafHosts
+  become: yes
+  become_method: sudo
+  roles:
+    - kafka

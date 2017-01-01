@@ -40,3 +40,6 @@
 - assert:
     that:
       - "'imok' in zk_ruok.stdout"
+- include: datadog.yml
+  tags:
+    - datadog

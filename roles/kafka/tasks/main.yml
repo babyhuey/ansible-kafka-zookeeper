@@ -1,25 +1,51 @@
 - include_vars: vars.yml
 - include: roles/kafka/templates/facts.yml
+- setup:
 - name: Install required items
   yum: name={{ item }} state=present
   with_items:
     - java-1.8.0-openjdk-headless
-- name: Create ZK User
-  user: name=zookeeper shell=/bin/bash
+    - screen
+    - libselinux-python
+- name: Create kafka User
+  user: name=kafka shell=/bin/bash
+- name: Ensure dir exists
+  file: path=/usr/local/kafka_2.11-0.10.1.0/ state=directory
+- name: Ensure logs dir exists
+  file: path=/opt/segmint/kafka-logs state=directory owner=kafka group=kafka
 - name: Extract kafka
   unarchive:
     src: http://apache.claz.org/kafka/0.10.1.0/kafka_2.11-0.10.1.0.tgz
     remote_src: yes
     dest: /usr/local
     owner: kafka
-    creates: /usr/local/kafka_2.11-0.10.1.0/
+#    creates: /usr/local/kafka_2.11-0.10.1.0/
+  environment:
+            http_proxy: http://172.21.100.144:3128
+            https_proxy: http://172.21.100.144:3128
 - name: Check if Kafka is running
   command: sh -c "ps aux|grep [S]CREEN"
   ignore_errors: yes
   changed_when: false
   register: service_kafka
+  tags:
+    - start_kafka
 - name: Copy kafka configs
   template: src=server.properties dest=/usr/local/kafka_2.11-0.10.1.0/config/server.properties
+  tags:
+    - config
+
+- name: Copy start script to enable JMX
+  template: src=kafka-server-start.sh.j2 dest=/usr/local/kafka_2.11-0.10.1.0/bin/kafka-server-start.sh
+  tags:
+    - config
+
 - name: Start Kafka
   command: screen -S kafka -d -m su - kafka /usr/local/kafka_2.11-0.10.1.0/bin/kafka-server-start.sh /usr/local/kafka_2.11-0.10.1.0/config/server.properties
   when: service_kafka | failed
+  tags:
+    - start_kafka
+
+- include: datadog.yml
+  tags:
+    - datadog

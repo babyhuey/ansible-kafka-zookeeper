@@ -1,0 +1,8 @@
+- name: Copy datadog configs to server
+  copy:
+    src: files/zk.yaml
+    dest: /etc/dd-agent/conf.d/zk.yaml
+    force: no
+  notify: restart datadog
+  tags:
+    - datadog
